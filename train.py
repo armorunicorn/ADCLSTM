@@ -32,13 +32,13 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # =============================================================================
 
 # Model choices
-tf.flags.DEFINE_string('clf', 'clstm', "Type of classifiers. Default: cnn. You have four choices: [cnn, lstm, blstm, clstm]")
+tf.flags.DEFINE_string('clf', 'adclstm', "Type of classifiers. Default: cnn. You have four choices: [cnn, lstm, blstm, clstm, adclstm]")
 tf.flags.DEFINE_string('embd_file', './data/word_embd.pickle', "word embeding pickle file")
 tf.flags.DEFINE_string('char_embd_file', './data/char_embd.pickle', "Char embeding pickle file")
 
 # Data parameters
-tf.flags.DEFINE_string('data_file', "./data/model_input_word_tran_28.txt", 'Data file path')
-tf.flags.DEFINE_string('char_data_file', "./data/model_input_char_tran_51.txt", 'Char Data file path')
+tf.flags.DEFINE_string('data_file', "./data/model_input_word_data.txt", 'Data file path')
+tf.flags.DEFINE_string('char_data_file', "./data/model_input_char_data.txt", 'Char Data file path')
 tf.flags.DEFINE_string('stop_word_file', None, 'Stop word file path')
 tf.flags.DEFINE_string('language', 'en', "Language of the data file. You have two choices: [ch, en]")
 tf.flags.DEFINE_integer('min_frequency', 0, 'Minimal word frequency')
@@ -72,7 +72,7 @@ FLAGS = tf.flags.FLAGS
 
 if FLAGS.clf == 'lstm':
     FLAGS.embedding_size = FLAGS.hidden_size
-elif FLAGS.clf == 'clstm':
+elif FLAGS.clf == 'clstm' or FLAGS.clf == 'adclstm':
     FLAGS.hidden_size = len(FLAGS.filter_sizes.split(",")) * FLAGS.num_filters
 
 # Output files directory
@@ -113,7 +113,7 @@ elif model == 'lstm' or model == 'blstm':
     del params['num_filters']
     del params['filter_sizes']
     params['embedding_size'] = params['hidden_size']
-elif model == 'clstm':
+elif model == 'clstm' or model == 'adclstm':
     params['hidden_size'] = len(list(map(int, params['filter_sizes'].split(",")))) * params['num_filters']
 
 params_dict = sorted(params.items(), key=lambda x: x[0])
@@ -152,12 +152,12 @@ with tf.Graph().as_default():
             classifier = cnn_clf(FLAGS)
         elif FLAGS.clf == 'lstm' or FLAGS.clf == 'blstm':
             classifier = rnn_clf(FLAGS)
-        elif FLAGS.clf == 'clstm':
+        elif FLAGS.clf == 'clstm' or FLAGS.clf == 'adclstm':
             classifier = clstm_clf(FLAGS)
         elif FLAGS.clf == "attn_lstm":
             classifier = attn_rnn_clf(FLAGS)
         else:
-            raise ValueError('clf should be one of [cnn, lstm, blstm, clstm]')
+            raise ValueError('clf should be one of [cnn, lstm, blstm, clstm, adclstm]')
 
         # Train procedure
         global_step = tf.Variable(0, name='global_step', trainable=False)
